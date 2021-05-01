@@ -1,4 +1,5 @@
 from flask import Flask,jsonify,request
+import re
 
 app = Flask(__name__)
 
@@ -7,7 +8,6 @@ from files import files
 ################################################## CON FICHEROS EXTERNOS ##########################################################
 
 #Editar el contenido de open con la ruta del archivo a abrir, aqui puedes leer el contenido del fichero
-
 @app.route('/agent')
 def getConf():
 	 f = open ('agent.conf','r')
@@ -15,28 +15,40 @@ def getConf():
 	 f.close()
 	 return jsonify({"agente":contenido})
 
-#Editar el contenido de data, creara un agente.conf nuevo sobrescribiendo el archivo.	 
+#Editar el contenido de search para encontrar la palabra busca.
+@app.route('/agentsearch')
+def searchConf():
+	f = open('agent.conf', "r")
+	contador = 0
+	for x in f:
+	  search=re.search(r"snmp_verify",x)
+	  contador += 1
+	  if search:
+	  	print(search, contador)
+	  	break
+	return jsonify({"busquedarealizada":""})	
+ 
 
+#Editar el contenido de data, creara un agente.conf nuevo sobrescribiendo el archivo.	 
 @app.route('/agentwrite')
 def writeConf():
 	data = ["Línea 1", "Línea 2", "Línea 3", "Línea 4", "Línea 5"]
 	f = open("agent.conf", "w")
 	escritura=f.writelines("%s\n" % s for s in data)
 	f.close()
-	return jsonify({"archivo sobrescrito"})
+	return jsonify({"archivosobrescrito":""})
 
 #Editar el contenido de new lines, se añadiran esas lineas al final del archivo.
-
 @app.route('/agentaddlines')
 def addlineConf():
 	newlines = ["", "Línea 2", "Línea 3", "Línea 4", "Línea 5"]
 	f = open("agent.conf", "a")
 	f.writelines("%s\n" % s for s in newlines)
 	f.close()
-	return jsonify({"lineas añadidas"})	
+	return jsonify({"lineasañadidas":""})	
 
 #################################################### CON FICHEROS PYTHON ########################################################## 
-																																   	
+																																	
 #ruta para ver el contenido del archivo
 @app.route('/files')
 def getFiles():
