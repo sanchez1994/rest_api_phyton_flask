@@ -1,4 +1,5 @@
 from flask import Flask,jsonify,request
+from os import remove,path
 import re
 
 app = Flask(__name__)
@@ -10,18 +11,18 @@ from files import files
 #Editar el contenido de open con la ruta del archivo a abrir, aqui puedes leer el contenido del fichero
 @app.route('/agent')
 def getConf():
-	 f = open ('agent.conf','r')
-	 contenido = f.readlines()
-	 f.close()
+	 file = open ('agent.conf','r')
+	 contenido = file.readlines()
+	 file.close()
 	 return jsonify({"agente":contenido})
 
 #Editar el contenido de search para encontrar la palabra busca.
 @app.route('/agentsearch')
 def searchConf():
-	f = open('agent.conf', "r")
+	file = open('agent.conf', "r")
 	contador = 0
-	for x in f:
-	  search=re.search(r"snmp_verify",x)
+	for line in file:
+	  search=re.search(r"snmp_verify",line)
 	  contador += 1
 	  if search:
 	  	print(search, contador)
@@ -33,19 +34,27 @@ def searchConf():
 @app.route('/agentwrite')
 def writeConf():
 	data = ["Línea 1", "Línea 2", "Línea 3", "Línea 4", "Línea 5"]
-	f = open("agent.conf", "w")
-	escritura=f.writelines("%s\n" % s for s in data)
-	f.close()
+	file = open("agent.conf", "w")
+	escritura=file.writelines("%s\n" % s for s in data)
+	file.close()
 	return jsonify({"archivosobrescrito":""})
 
 #Editar el contenido de new lines, se añadiran esas lineas al final del archivo.
 @app.route('/agentaddlines')
 def addlineConf():
 	newlines = ["", "Línea 2", "Línea 3", "Línea 4", "Línea 5"]
-	f = open("agent.conf", "a")
-	f.writelines("%s\n" % s for s in newlines)
-	f.close()
-	return jsonify({"lineasañadidas":""})	
+	file = open("agent.conf", "a")
+	file.writelines("%s\n" % s for s in newlines)
+	file.close()
+	return jsonify({"lineasañadidas":""})
+
+#Para borrar un fichero, meter la ruta del fichero.
+@app.route('/agentdelete')	
+def delConf():
+	if path.exists("nada.conf"):
+		remove('nada.conf')
+	return jsonify({"fichero borrado":""})	
+
 
 #################################################### CON FICHEROS PYTHON ########################################################## 
 																																	
@@ -100,6 +109,6 @@ def deleteAgent(agent_name):
 			})
 	return jsonify({"message":"agente no encontrado"})
 
-#para especificar el puerto del server
+#para especificar el puerto del server, activar el modo debug y activar multihilos. 
 if __name__== '__main__':
-	  app.run(debug=True, port=4000)
+	  app.run(debug=True, port=4000, threaded=True)
